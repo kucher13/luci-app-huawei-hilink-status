@@ -1,0 +1,13 @@
+{
+  "admin/huawei-lte": {
+    "title": "Huawei LTE",
+    "order": 30,
+    "action": {
+      "type": "view",
+      "path": "huawei/lte_clean"
+    },
+    "depends": {
+      "acl": [ "luci-app-huawei-hilink-status" ]
+    }
+  }
+}
