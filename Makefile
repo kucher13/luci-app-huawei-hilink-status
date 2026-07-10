@@ -31,8 +31,9 @@ define Package/luci-app-huawei-hilink-status/install
 	$(INSTALL_BIN) ./files/usr/bin/huawei $(1)/usr/bin/huawei
 
 	$(INSTALL_DIR) $(1)/www/luci-static/resources/view/huawei
-	$(INSTALL_DATA) ./files/www/luci-static/resources/view/huawei/lte_clean.js \
+	gzip -dc ./files/www/luci-static/resources/view/huawei/lte_clean.js.gz > \
 		$(1)/www/luci-static/resources/view/huawei/lte_clean.js
+	chmod 0644 $(1)/www/luci-static/resources/view/huawei/lte_clean.js
 
 	$(INSTALL_DIR) $(1)/usr/share/luci/menu.d
 	$(INSTALL_DATA) ./files/usr/share/luci/menu.d/luci-app-huawei-lte.json \

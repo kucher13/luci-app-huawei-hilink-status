@@ -1,0 +1,388 @@
+#!/bin/sh
+
+BASE="${HUAWEI_BASE:-http://192.168.8.1}"
+CURL="curl -s --connect-timeout 3 --max-time 7"
+HIST="/tmp/huawei-lte-history.tsv"
+
+get_session() {
+  XML="$($CURL "$BASE/api/webserver/SesTokInfo")"
+  SESSION="$(echo "$XML" | sed -n 's:.*<SesInfo>\(.*\)</SesInfo>.*:\1:p')"
+  TOKEN="$(echo "$XML" | sed -n 's:.*<TokInfo>\(.*\)</TokInfo>.*:\1:p')"
+  [ -n "$SESSION" ]
+}
+
+need_session() {
+  if ! get_session; then
+    echo "Ошибка: не удалось получить SessionID"
+    echo "$XML"
+    exit 1
+  fi
+}
+
+api_get_existing() {
+  $CURL \
+    -H "Cookie: $SESSION" \
+    -H "__RequestVerificationToken: $TOKEN" \
+    "$BASE$1"
+}
+
+api_get() {
+  need_session
+  api_get_existing "$1"
+  echo
+}
+
+api_post() {
+  need_session
+  ENDPOINT="$1"
+  BODY="$2"
+
+  $CURL -X POST \
+    -H "Cookie: $SESSION" \
+    -H "__RequestVerificationToken: $TOKEN" \
+    -H "Content-Type: application/xml" \
+    -d "$BODY" \
+    "$BASE$ENDPOINT"
+  echo
+}
+
+xml_tag() {
+  echo "$1" | tr '<' '\n' | sed -n "s:^$2>\(.*\):\1:p" | head -n 1
+}
+
+num_clean() {
+  printf '%s' "$1" | sed 's/[^0-9.-]//g'
+}
+
+bytes_h() {
+  B="${1:-0}"
+  awk -v b="$B" 'BEGIN {
+    if (b == "" || b < 0) b = 0
+    split("B KB MB GB TB", u)
+    i = 1
+    while (b >= 1024 && i < 5) { b = b / 1024; i++ }
+    printf "%.2f %s", b, u[i]
+  }'
+}
+
+bytes_sum_h() {
+  A="${1:-0}"
+  B="${2:-0}"
+  awk -v a="$A" -v b="$B" 'BEGIN {
+    s = a + b
+    split("B KB MB GB TB", u)
+    i = 1
+    while (s >= 1024 && i < 5) { s = s / 1024; i++ }
+    printf "%.2f %s", s, u[i]
+  }'
+}
+
+seconds_h() {
+  S="${1:-0}"
+  [ -z "$S" ] && S=0
+  D=$((S / 86400))
+  H=$(((S % 86400) / 3600))
+  M=$(((S % 3600) / 60))
+  SEC=$((S % 60))
+
+  if [ "$D" -gt 0 ]; then
+    echo "${D}д ${H}ч ${M}м"
+  elif [ "$H" -gt 0 ]; then
+    echo "${H}ч ${M}м"
+  else
+    echo "${M}м ${SEC}с"
+  fi
+}
+
+status_text() {
+  case "$1" in
+    901) echo "подключено" ;;
+    902) echo "отключено" ;;
+    900) echo "подключение" ;;
+    *) echo "код $1" ;;
+  esac
+}
+
+service_text() {
+  case "$1" in
+    2) echo "доступен" ;;
+    1) echo "ограничен" ;;
+    0) echo "нет сервиса" ;;
+    *) echo "код $1" ;;
+  esac
+}
+
+roaming_text() {
+  case "$1" in
+    0) echo "нет" ;;
+    1) echo "да" ;;
+    *) echo "код $1" ;;
+  esac
+}
+
+json_escape() {
+  printf '%s' "$1" | awk 'BEGIN{ORS=""}{gsub(/\\/,"\\\\"); gsub(/"/,"\\\""); gsub(/\r/,"\\r"); gsub(/\t/,"\\t"); print}'
+}
+
+jkv() {
+  printf '"%s":"%s"' "$1" "$(json_escape "$2")"
+}
+
+append_history() {
+  LABEL="$(date '+%H:%M')"
+  TS="$(date '+%s')"
+
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    "$LABEL" "$TS" "$1" "$2" "$3" "$4" "$5" "$6" "$7" >> "$HIST"
+
+  tail -n 2160 "$HIST" > "$HIST.tmp" 2>/dev/null && mv "$HIST.tmp" "$HIST"
+}
+
+history_json() {
+  if [ ! -s "$HIST" ]; then
+    printf '[]'
+    return
+  fi
+
+  awk -F '\t' '
+    function esc(s){gsub(/\\/,"\\\\",s); gsub(/"/,"\\\"",s); return s}
+    function num(x){return x=="" ? "null" : x}
+    BEGIN{printf "["; first=1}
+    {
+      if (!first) printf ",";
+      first=0;
+      printf "{\"label\":\"%s\",\"ts\":%s,\"rsrp\":%s,\"rsrq\":%s,\"sinr\":%s,\"rssi\":%s,\"download_rate\":%s,\"upload_rate\":%s,\"ping\":%s}", esc($1), num($2), num($3), num($4), num($5), num($6), num($7), num($8), num($9)
+    }
+    END{printf "]"}
+  ' "$HIST"
+}
+
+ping_check() {
+  PING_OK="no"
+  PING_MS=""
+
+  PING_OUT="$(ping -c 1 -W 2 8.8.8.8 2>/dev/null)"
+  if echo "$PING_OUT" | grep -q "time="; then
+    PING_OK="yes"
+    PING_MS="$(echo "$PING_OUT" | sed -n 's/.*time=\([0-9.]*\).*/\1/p' | head -n 1)"
+  fi
+}
+
+dns_check() {
+  DNS_OK="no"
+  nslookup openwrt.org 1.1.1.1 >/dev/null 2>&1 && DNS_OK="yes"
+}
+
+dashboard_json() {
+  if ! get_session; then
+    printf '{'
+    printf '"ok":false,'
+    jkv updated "$(date '+%Y-%m-%d %H:%M:%S')"; printf ','
+    jkv error "Huawei API недоступен или не выдал SessionID"
+    printf '}\n'
+    return
+  fi
+
+  DEVICE="$(api_get_existing /api/device/information)"
+  STATUS="$(api_get_existing /api/monitoring/status)"
+  SIGNAL="$(api_get_existing /api/device/signal)"
+  OPERATOR="$(api_get_existing /api/net/current-plmn)"
+  TRAFFIC="$(api_get_existing /api/monitoring/traffic-statistics)"
+  MONTH="$(api_get_existing /api/monitoring/month_statistics)"
+
+  WAN_IP="$(xml_tag "$DEVICE" WanIPAddress)"
+  CONN="$(xml_tag "$STATUS" ConnectionStatus)"
+  SERV="$(xml_tag "$STATUS" ServiceStatus)"
+  ROAM="$(xml_tag "$STATUS" RoamingStatus)"
+
+  RSRP="$(xml_tag "$SIGNAL" rsrp)"
+  RSRQ="$(xml_tag "$SIGNAL" rsrq)"
+  RSSI="$(xml_tag "$SIGNAL" rssi)"
+  SINR="$(xml_tag "$SIGNAL" sinr)"
+
+  RSRP_N="$(num_clean "$RSRP")"
+  RSRQ_N="$(num_clean "$RSRQ")"
+  RSSI_N="$(num_clean "$RSSI")"
+  SINR_N="$(num_clean "$SINR")"
+
+  CU="$(xml_tag "$TRAFFIC" CurrentUpload)"
+  CD="$(xml_tag "$TRAFFIC" CurrentDownload)"
+  URATE="$(xml_tag "$TRAFFIC" CurrentUploadRate)"
+  DRATE="$(xml_tag "$TRAFFIC" CurrentDownloadRate)"
+  TU="$(xml_tag "$TRAFFIC" TotalUpload)"
+  TD="$(xml_tag "$TRAFFIC" TotalDownload)"
+  MU="$(xml_tag "$MONTH" CurrentMonthUpload)"
+  MD="$(xml_tag "$MONTH" CurrentMonthDownload)"
+
+  ping_check
+  dns_check
+
+  MODEM_OK="no"
+  WAN_OK="no"
+  INTERNET_OK="no"
+
+  [ "$CONN" = "901" ] && MODEM_OK="yes"
+  [ -n "$WAN_IP" ] && WAN_OK="yes"
+  [ "$PING_OK" = "yes" ] && INTERNET_OK="yes"
+
+  append_history "$RSRP_N" "$RSRQ_N" "$SINR_N" "$RSSI_N" "$DRATE" "$URATE" "$PING_MS"
+
+  printf '{'
+  printf '"ok":true,'
+  jkv updated "$(date '+%Y-%m-%d %H:%M:%S')"; printf ','
+
+  printf '"device":{'
+  jkv name "$(xml_tag "$DEVICE" DeviceName)"; printf ','
+  jkv workmode "$(xml_tag "$DEVICE" workmode)"; printf ','
+  jkv classify "$(xml_tag "$DEVICE" classify)"; printf ','
+  jkv supportmode "$(xml_tag "$DEVICE" supportmode)"; printf ','
+  jkv wan_ip "$WAN_IP"; printf ','
+  jkv software "$(xml_tag "$DEVICE" SoftwareVersion)"; printf ','
+  jkv webui "$(xml_tag "$DEVICE" WebUIVersion)"
+  printf '},'
+
+  printf '"operator":{'
+  jkv full "$(xml_tag "$OPERATOR" FullName)"; printf ','
+  jkv short "$(xml_tag "$OPERATOR" ShortName)"; printf ','
+  jkv numeric "$(xml_tag "$OPERATOR" Numeric)"; printf ','
+  jkv rat "$(xml_tag "$OPERATOR" Rat)"
+  printf '},'
+
+  printf '"status":{'
+  jkv connection "$CONN"; printf ','
+  jkv connection_text "$(status_text "$CONN")"; printf ','
+  jkv service "$SERV"; printf ','
+  jkv service_text "$(service_text "$SERV")"; printf ','
+  jkv roaming "$ROAM"; printf ','
+  jkv roaming_text "$(roaming_text "$ROAM")"; printf ','
+  jkv network_type "$(xml_tag "$STATUS" CurrentNetworkType)"; printf ','
+  jkv network_type_ex "$(xml_tag "$STATUS" CurrentNetworkTypeEx)"; printf ','
+  jkv dns1 "$(xml_tag "$STATUS" PrimaryDns)"; printf ','
+  jkv dns2 "$(xml_tag "$STATUS" SecondaryDns)"
+  printf '},'
+
+  printf '"signal":{'
+  jkv rsrp "$RSRP"; printf ','
+  jkv rsrq "$RSRQ"; printf ','
+  jkv rssi "$RSSI"; printf ','
+  jkv sinr "$SINR"; printf ','
+  jkv pci "$(xml_tag "$SIGNAL" pci)"; printf ','
+  jkv cell_id "$(xml_tag "$SIGNAL" cell_id)"; printf ','
+  jkv mode "$(xml_tag "$SIGNAL" mode)"
+  printf '},'
+
+  printf '"traffic":{'
+  jkv session_time "$(xml_tag "$TRAFFIC" CurrentConnectTime)"; printf ','
+  jkv session_time_h "$(seconds_h "$(xml_tag "$TRAFFIC" CurrentConnectTime)")"; printf ','
+  jkv current_upload "$CU"; printf ','
+  jkv current_upload_h "$(bytes_h "$CU")"; printf ','
+  jkv current_download "$CD"; printf ','
+  jkv current_download_h "$(bytes_h "$CD")"; printf ','
+  jkv current_upload_rate "$URATE"; printf ','
+  jkv current_upload_rate_h "$(bytes_h "$URATE")/s"; printf ','
+  jkv current_download_rate "$DRATE"; printf ','
+  jkv current_download_rate_h "$(bytes_h "$DRATE")/s"; printf ','
+  jkv total_upload "$TU"; printf ','
+  jkv total_upload_h "$(bytes_h "$TU")"; printf ','
+  jkv total_download "$TD"; printf ','
+  jkv total_download_h "$(bytes_h "$TD")"; printf ','
+  jkv total_h "$(bytes_sum_h "$TU" "$TD")"; printf ','
+  jkv total_time "$(xml_tag "$TRAFFIC" TotalConnectTime)"; printf ','
+  jkv total_time_h "$(seconds_h "$(xml_tag "$TRAFFIC" TotalConnectTime)")"
+  printf '},'
+
+  printf '"month":{'
+  jkv upload "$MU"; printf ','
+  jkv upload_h "$(bytes_h "$MU")"; printf ','
+  jkv download "$MD"; printf ','
+  jkv download_h "$(bytes_h "$MD")"; printf ','
+  jkv total_h "$(bytes_sum_h "$MU" "$MD")"; printf ','
+  jkv duration "$(xml_tag "$MONTH" MonthDuration)"; printf ','
+  jkv duration_h "$(seconds_h "$(xml_tag "$MONTH" MonthDuration)")"; printf ','
+  jkv clear_time "$(xml_tag "$MONTH" MonthLastClearTime)"
+  printf '},'
+
+  printf '"internet":{'
+  jkv modem "$MODEM_OK"; printf ','
+  jkv wan "$WAN_OK"; printf ','
+  jkv internet "$INTERNET_OK"; printf ','
+  jkv dns "$DNS_OK"; printf ','
+  jkv ping "$PING_OK"; printf ','
+  jkv ping_ms "$PING_MS"
+  printf '},'
+
+  printf '"history":'
+  history_json
+
+  printf '}\n'
+}
+
+case "$1" in
+  json|dashboard)
+    dashboard_json
+    ;;
+
+  summary)
+    dashboard_json
+    ;;
+
+  info)
+    api_get /api/device/information
+    ;;
+
+  status)
+    api_get /api/monitoring/status
+    ;;
+
+  signal)
+    api_get /api/device/signal
+    ;;
+
+  operator)
+    api_get /api/net/current-plmn
+    ;;
+
+  traffic)
+    api_get /api/monitoring/traffic-statistics
+    ;;
+
+  month)
+    api_get /api/monitoring/month_statistics
+    ;;
+
+  data-on)
+    api_post /api/dialup/mobile-dataswitch '<request><dataswitch>1</dataswitch></request>'
+    ;;
+
+  data-off)
+    api_post /api/dialup/mobile-dataswitch '<request><dataswitch>0</dataswitch></request>'
+    ;;
+
+  reconnect)
+    echo "Отключаю мобильные данные..."
+    api_post /api/dialup/mobile-dataswitch '<request><dataswitch>0</dataswitch></request>'
+    sleep 5
+    echo "Включаю мобильные данные..."
+    api_post /api/dialup/mobile-dataswitch '<request><dataswitch>1</dataswitch></request>'
+    ;;
+
+  reboot)
+    echo "Команда reboot отключена."
+    exit 1
+    ;;
+
+  raw)
+    ENDPOINT="$2"
+    [ -z "$ENDPOINT" ] && echo "Использование: huawei raw /api/device/signal" && exit 1
+    api_get "$ENDPOINT"
+    ;;
+
+  *)
+    echo "Huawei HiLink helper"
+    echo "  huawei json"
+    echo "  huawei reconnect"
+    echo "  huawei data-on"
+    echo "  huawei data-off"
+    echo "  huawei raw /api/..."
+    ;;
+esac
