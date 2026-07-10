@@ -1,0 +1,5 @@
+/build/
+/result/
+*.apk
+*.tar.zst
+.DS_Store
