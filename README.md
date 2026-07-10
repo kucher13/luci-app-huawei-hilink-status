@@ -5,8 +5,20 @@
 [![License](https://img.shields.io/github/license/kucher13/luci-app-huawei-hilink-status)](LICENSE)
 
 <p align="center">
-  <a href="docs/dashboard.jpg">
-    <img src="docs/dashboard.jpg" alt="Huawei HiLink LTE Status dashboard">
+  <a href="docs/dashboard-top.png">
+    <img src="docs/dashboard-top.png" alt="Huawei HiLink LTE dashboard overview" width="100%">
+  </a>
+</p>
+
+<p align="center">
+  <a href="docs/dashboard-traffic.png">
+    <img src="docs/dashboard-traffic.png" alt="Huawei HiLink LTE traffic and internet status" width="100%">
+  </a>
+</p>
+
+<p align="center">
+  <a href="docs/dashboard-history.png">
+    <img src="docs/dashboard-history.png" alt="Huawei HiLink LTE history and controls" width="100%">
   </a>
 </p>
 
@@ -209,7 +221,9 @@ make package/luci-app-huawei-hilink-status/compile V=s
 Makefile
 build-on-ubuntu.sh
 docs/
-└── dashboard.jpg
+├── dashboard-top.png
+├── dashboard-traffic.png
+└── dashboard-history.png
 files/
 ├── usr/bin/huawei
 ├── usr/share/luci/menu.d/luci-app-huawei-lte.json
