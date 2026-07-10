@@ -4,6 +4,12 @@
 [![Build OpenWrt APK](https://github.com/kucher13/luci-app-huawei-hilink-status/actions/workflows/build.yml/badge.svg)](https://github.com/kucher13/luci-app-huawei-hilink-status/actions/workflows/build.yml)
 [![License](https://img.shields.io/github/license/kucher13/luci-app-huawei-hilink-status)](LICENSE)
 
+<p align="center">
+  <a href="docs/dashboard.jpg">
+    <img src="docs/dashboard.jpg" alt="Huawei HiLink LTE Status dashboard">
+  </a>
+</p>
+
 A modern LuCI dashboard for Huawei HiLink LTE modems connected to an OpenWrt router.
 
 The application displays LTE signal quality, operator and connection information, traffic statistics, connection health and history. It also provides basic modem controls directly from LuCI.
@@ -202,6 +208,8 @@ make package/luci-app-huawei-hilink-status/compile V=s
 ```text
 Makefile
 build-on-ubuntu.sh
+docs/
+└── dashboard.jpg
 files/
 ├── usr/bin/huawei
 ├── usr/share/luci/menu.d/luci-app-huawei-lte.json
