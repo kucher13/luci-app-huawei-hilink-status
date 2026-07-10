@@ -10,6 +10,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: openwrt-apk-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -53,3 +57,26 @@ jobs:
               --title "$RELEASE_TAG" \
               --generate-notes
           fi
+
+      - name: Record successful release
+        if: github.ref == 'refs/heads/main'
+        run: |
+          APK_FILE="$(find result -maxdepth 1 -type f -name '*.apk' -printf '%f\n' | head -n 1)"
+          APK_SHA256="$(sha256sum "result/$APK_FILE" | awk '{print $1}')"
+
+          cat > RELEASE_STATUS.md <<EOF
+          # Release status
+
+          - Status: successful
+          - Release: v1.0.0
+          - Package: $APK_FILE
+          - SHA-256: $APK_SHA256
+          - Source commit: $GITHUB_SHA
+          - Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add RELEASE_STATUS.md
+          git commit -m "Record successful v1.0.0 release [skip ci]"
+          git push origin HEAD:main
