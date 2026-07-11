@@ -10,7 +10,6 @@ Goal: make continued development safer without changing stable dashboard behavio
 
 Planned:
 
-- generalize GitHub Actions release handling so the next release is not hardcoded to `v1.0.0`
 - add lightweight CI validation for:
   - backend shell syntax
   - build script syntax
@@ -24,12 +23,14 @@ Completed in the current development branch:
 - kept an uncompressed LuCI JavaScript source file in the repository as the source of truth
 - updated package build logic to install that source file directly
 - removed the obsolete compressed LuCI JavaScript file
+- generalized GitHub Actions release handling so ordinary main-branch pushes never publish releases
+- added a tag and `PKG_VERSION` consistency check before GitHub Release publication
 
 Release criteria:
 
 - existing package still builds successfully
 - no dashboard feature is intentionally removed
-- release automation can publish a version other than v1.0.0
+- release automation publishes only from matching version tags
 - repository source is easier to review and modify
 
 ## v1.1.0 — Configurable Huawei modem address

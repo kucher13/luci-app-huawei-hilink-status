@@ -67,7 +67,7 @@ result/SHA256SUMS
 
 GitHub Actions builds the package on relevant source changes and uploads the APK and checksum as workflow artifacts.
 
-The current release publishing workflow still contains v1.0.0-specific logic and needs to be generalized before the next normal versioned release.
+GitHub Release publication is restricted to pushed tags matching `v*`. Before publishing release files, the workflow reads `PKG_VERSION` from `Makefile` and requires the pushed tag to equal `v${PKG_VERSION}`.
 
 The package now installs the LuCI JavaScript view from the uncompressed source file in the repository.
 
@@ -128,22 +128,15 @@ Huawei HiLink XML responses and endpoints vary by modem model and firmware.
 
 The current parser handles the known tested flow, but broader compatibility still needs structured testing and diagnostics.
 
-### Release automation is version-specific
-
-The GitHub Actions workflow currently publishes or updates `v1.0.0` for main-branch builds and uses the tag name only for tag-triggered builds.
-
-Before the next release, release version handling should be derived from package metadata or the pushed tag and should not be hardcoded to v1.0.0.
-
 ## Current focus
 
 The next maintenance phase should prepare the repository for continued development after v1.0.0 without changing stable user behavior unnecessarily.
 
 Priority order:
 
-1. generalize version and release automation
-2. add lightweight validation for shell, package structure, and frontend source
-3. add a persistent LuCI setting for the Huawei modem address
-4. improve compatibility diagnostics for different HiLink firmware variants
+1. add lightweight validation for shell, package structure, and frontend source
+2. add a persistent LuCI setting for the Huawei modem address
+3. improve compatibility diagnostics for different HiLink firmware variants
 
 See `ROADMAP.md` for the planned version sequence.
 
@@ -157,6 +150,7 @@ See `ROADMAP.md` for the planned version sequence.
 - fixed GitHub Actions status reporting
 - added project instructions, project status, roadmap, and changelog files for agent-assisted development
 - made the uncompressed LuCI JavaScript file the source of truth without changing dashboard behavior
+- restricted GitHub Release publication to version tag pushes that match `PKG_VERSION`
 
 ## Known critical regressions
 

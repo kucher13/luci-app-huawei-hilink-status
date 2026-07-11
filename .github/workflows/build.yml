@@ -24,7 +24,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: openwrt-apk-${{ github.ref }}
@@ -53,23 +53,49 @@ jobs:
             result/SHA256SUMS
           if-no-files-found: error
 
-      - name: Publish v1.0.0 release
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+  publish:
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: luci-app-huawei-hilink-status
+          path: result
+
+      - name: Publish tagged release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            RELEASE_TAG="$GITHUB_REF_NAME"
-          else
-            RELEASE_TAG="v1.0.0"
+          PKG_VERSION="$(awk -F':=' '$1 == "PKG_VERSION" { print $2; exit }' Makefile)"
+          if [[ -z "$PKG_VERSION" ]]; then
+            echo "::error::Could not read PKG_VERSION from Makefile"
+            exit 1
+          fi
+
+          RELEASE_TAG="$GITHUB_REF_NAME"
+          EXPECTED_TAG="v${PKG_VERSION}"
+
+          if [[ "$RELEASE_TAG" != "$EXPECTED_TAG" ]]; then
+            echo "::error::Release tag ${RELEASE_TAG} does not match Makefile PKG_VERSION ${PKG_VERSION}; expected ${EXPECTED_TAG}"
+            exit 1
           fi
 
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" result/*.apk result/SHA256SUMS --clobber
-          else
-            gh release create "$RELEASE_TAG" \
-              result/*.apk result/SHA256SUMS \
-              --target "$GITHUB_SHA" \
-              --title "$RELEASE_TAG" \
-              --generate-notes
+            echo "::error::Release ${RELEASE_TAG} already exists; refusing to modify it"
+            exit 1
           fi
+
+          gh release create "$RELEASE_TAG" \
+            result/*.apk result/SHA256SUMS \
+            --target "$GITHUB_SHA" \
+            --title "$RELEASE_TAG" \
+            --generate-notes
