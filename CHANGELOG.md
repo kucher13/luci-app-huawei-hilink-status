@@ -6,6 +6,9 @@ All notable user-visible changes to this project are recorded here.
 
 ### Maintenance
 
+- Made the uncompressed LuCI JavaScript view the repository source of truth.
+- Updated package installation to install the LuCI JavaScript view directly from `lte_clean.js`.
+- Removed the obsolete compressed `lte_clean.js.gz` frontend file.
 - Added `AGENTS.md` with project-specific instructions for coding agents.
 - Added `PROJECT_STATUS.md` as the factual current-state reference for the project.
 - Added `ROADMAP.md` with planned development stages after v1.0.0.

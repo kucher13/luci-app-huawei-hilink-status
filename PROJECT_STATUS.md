@@ -69,6 +69,8 @@ GitHub Actions builds the package on relevant source changes and uploads the APK
 
 The current release publishing workflow still contains v1.0.0-specific logic and needs to be generalized before the next normal versioned release.
 
+The package now installs the LuCI JavaScript view from the uncompressed source file in the repository.
+
 ## Current architecture
 
 ### Backend
@@ -87,11 +89,9 @@ The shell backend:
 
 ### LuCI frontend
 
-`files/www/luci-static/resources/view/huawei/lte_clean.js.gz`
+`files/www/luci-static/resources/view/huawei/lte_clean.js`
 
-The current LuCI view is stored compressed in the repository and is decompressed by the package build into `lte_clean.js`.
-
-This works for packaging, but it is not an ideal source-maintenance format. Moving to an uncompressed JavaScript source of truth is a planned maintenance task.
+The current LuCI view is stored as an uncompressed JavaScript source file and is installed directly by the package build.
 
 ### LuCI integration
 
@@ -134,23 +134,16 @@ The GitHub Actions workflow currently publishes or updates `v1.0.0` for main-bra
 
 Before the next release, release version handling should be derived from package metadata or the pushed tag and should not be hardcoded to v1.0.0.
 
-### Compressed LuCI source in the repository
-
-The LuCI JavaScript view is currently committed only as a gzip file.
-
-This makes review, diffing, and agent-assisted maintenance harder than necessary.
-
 ## Current focus
 
 The next maintenance phase should prepare the repository for continued development after v1.0.0 without changing stable user behavior unnecessarily.
 
 Priority order:
 
-1. make the uncompressed LuCI JavaScript file the source of truth
-2. generalize version and release automation
-3. add lightweight validation for shell, gzip, package structure, and frontend source
-4. add a persistent LuCI setting for the Huawei modem address
-5. improve compatibility diagnostics for different HiLink firmware variants
+1. generalize version and release automation
+2. add lightweight validation for shell, package structure, and frontend source
+3. add a persistent LuCI setting for the Huawei modem address
+4. improve compatibility diagnostics for different HiLink firmware variants
 
 See `ROADMAP.md` for the planned version sequence.
 
@@ -163,6 +156,7 @@ See `ROADMAP.md` for the planned version sequence.
 - added full-resolution dashboard screenshots
 - fixed GitHub Actions status reporting
 - added project instructions, project status, roadmap, and changelog files for agent-assisted development
+- made the uncompressed LuCI JavaScript file the source of truth without changing dashboard behavior
 
 ## Known critical regressions
 

@@ -10,16 +10,20 @@ Goal: make continued development safer without changing stable dashboard behavio
 
 Planned:
 
-- keep an uncompressed LuCI JavaScript source file in the repository as the source of truth
-- update package build logic to install or compress from that source in a clear, reproducible way
 - generalize GitHub Actions release handling so the next release is not hardcoded to `v1.0.0`
 - add lightweight CI validation for:
   - backend shell syntax
   - build script syntax
-  - gzip integrity while the compressed file still exists
+  - frontend JavaScript syntax
   - required package files
 - document the release procedure
 - keep current v1.0.0 user-facing behavior unchanged unless a confirmed bug must be fixed
+
+Completed in the current development branch:
+
+- kept an uncompressed LuCI JavaScript source file in the repository as the source of truth
+- updated package build logic to install that source file directly
+- removed the obsolete compressed LuCI JavaScript file
 
 Release criteria:
 

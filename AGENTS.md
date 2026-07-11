@@ -26,14 +26,14 @@ Do not start by rewriting working code.
 ## Current architecture
 
 - `files/usr/bin/huawei` is the shell backend and Huawei HiLink API client.
-- `files/www/luci-static/resources/view/huawei/lte_clean.js.gz` contains the compressed LuCI JavaScript view.
+- `files/www/luci-static/resources/view/huawei/lte_clean.js` contains the LuCI JavaScript view source.
 - `files/usr/share/luci/menu.d/luci-app-huawei-lte.json` registers the LuCI menu entry.
 - `files/usr/share/rpcd/acl.d/luci-app-huawei-lte.json` contains rpcd permissions.
 - `Makefile` defines the OpenWrt package.
 - `build-on-ubuntu.sh` performs a reproducible SDK build and writes APK output to `result/`.
 - `.github/workflows/build.yml` builds the package in GitHub Actions.
 
-The package build decompresses `lte_clean.js.gz` and installs it as `lte_clean.js`.
+The package build installs `lte_clean.js` directly as the LuCI view.
 
 ## Project priorities
 
@@ -67,20 +67,14 @@ In order of importance:
 
 The repository currently stores the LuCI view as:
 
-`files/www/luci-static/resources/view/huawei/lte_clean.js.gz`
+`files/www/luci-static/resources/view/huawei/lte_clean.js`
 
 When changing the UI:
 
-1. Decompress the file to a temporary regular `.js` working file.
+1. Edit the regular JavaScript source file.
 2. Make and review the JavaScript changes there.
-3. Check syntax before recompressing.
-4. Recompress deterministically with `gzip -n`.
-5. Verify that `gzip -t` succeeds.
-6. Review the final repository diff.
-
-Do not edit compressed binary data blindly.
-
-A future roadmap item is to keep an uncompressed JavaScript source file in the repository as the source of truth.
+3. Check syntax with an available local JavaScript tool.
+4. Review the final repository diff.
 
 ## Backend changes
 
@@ -117,11 +111,9 @@ Recommended minimum checks:
 ```sh
 sh -n files/usr/bin/huawei
 bash -n build-on-ubuntu.sh
-
-gzip -t files/www/luci-static/resources/view/huawei/lte_clean.js.gz
 ```
 
-For a UI change, decompress the LuCI JavaScript view and perform a JavaScript syntax check with an available local tool before recompressing.
+For a UI change, perform a JavaScript syntax check with an available local tool.
 
 For package or release changes, run the complete build when practical:
 

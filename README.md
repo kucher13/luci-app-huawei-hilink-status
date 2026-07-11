@@ -228,10 +228,10 @@ files/
 ├── usr/bin/huawei
 ├── usr/share/luci/menu.d/luci-app-huawei-lte.json
 ├── usr/share/rpcd/acl.d/luci-app-huawei-lte.json
-└── www/luci-static/resources/view/huawei/lte_clean.js.gz
+└── www/luci-static/resources/view/huawei/lte_clean.js
 ```
 
-During package build, `lte_clean.js.gz` is unpacked and installed as the regular LuCI JavaScript view `lte_clean.js`.
+During package build, `lte_clean.js` is installed directly as the LuCI JavaScript view.
 
 ## Privacy
 
