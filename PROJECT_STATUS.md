@@ -67,7 +67,7 @@ result/SHA256SUMS
 
 GitHub Actions first validates required package files, shell syntax, frontend JavaScript syntax, and LuCI JSON syntax. After successful validation, it builds the package on relevant source changes and uploads the APK and checksum as workflow artifacts.
 
-For commit `79bd5cf3050545107f3b1c716860d684e8f03ff5`, GitHub Actions completed both `validation` and the OpenWrt SDK `build` successfully and created the APK workflow artifact. The `publish` job was correctly skipped because the event was a push to `main`, not a version tag.
+For commit `08e11b6b113c0b0b4139472a5e22083f0176da55`, GitHub Actions workflow run `29162903838` completed both `validation` and the OpenWrt SDK `build` successfully and created the APK workflow artifact. The `publish` job was correctly skipped because the event was a push to `main`, not a version tag.
 
 GitHub Release publication is restricted to pushed tags matching `v*`. Before publishing release files, the workflow reads `PKG_VERSION` from `Makefile` and requires the pushed tag to equal `v${PKG_VERSION}`.
 
