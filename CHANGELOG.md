@@ -11,6 +11,7 @@ All notable user-visible changes to this project are recorded here.
 - Removed the obsolete compressed `lte_clean.js.gz` frontend file.
 - Restricted GitHub Release publication to pushed version tags matching `PKG_VERSION`.
 - Added lightweight GitHub Actions validation before the OpenWrt SDK build.
+- Added `RELEASING.md` with the safe version preparation, tagging, publication, and verification procedure.
 - Added `AGENTS.md` with project-specific instructions for coding agents.
 - Added `PROJECT_STATUS.md` as the factual current-state reference for the project.
 - Added `ROADMAP.md` with planned development stages after v1.0.0.

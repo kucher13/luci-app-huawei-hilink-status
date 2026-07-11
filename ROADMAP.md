@@ -10,7 +10,6 @@ Goal: make continued development safer without changing stable dashboard behavio
 
 Planned:
 
-- document the release procedure
 - keep current v1.0.0 user-facing behavior unchanged unless a confirmed bug must be fixed
 
 Completed in the current development branch:
@@ -21,6 +20,7 @@ Completed in the current development branch:
 - generalized GitHub Actions release handling so ordinary main-branch pushes never publish releases
 - added a tag and `PKG_VERSION` consistency check before GitHub Release publication
 - added lightweight CI validation for required files, shell scripts, frontend JavaScript, and LuCI JSON files
+- documented the safe release preparation, tagging, publication, and verification procedure
 
 Release criteria:
 

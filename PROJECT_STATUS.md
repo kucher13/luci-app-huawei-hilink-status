@@ -67,7 +67,11 @@ result/SHA256SUMS
 
 GitHub Actions first validates required package files, shell syntax, frontend JavaScript syntax, and LuCI JSON syntax. After successful validation, it builds the package on relevant source changes and uploads the APK and checksum as workflow artifacts.
 
+For commit `79bd5cf3050545107f3b1c716860d684e8f03ff5`, GitHub Actions completed both `validation` and the OpenWrt SDK `build` successfully and created the APK workflow artifact. The `publish` job was correctly skipped because the event was a push to `main`, not a version tag.
+
 GitHub Release publication is restricted to pushed tags matching `v*`. Before publishing release files, the workflow reads `PKG_VERSION` from `Makefile` and requires the pushed tag to equal `v${PKG_VERSION}`.
+
+The safe release procedure is documented in `RELEASING.md`. Version `v1.0.1` has not been tagged or published.
 
 The package now installs the LuCI JavaScript view from the uncompressed source file in the repository.
 
@@ -151,6 +155,7 @@ See `ROADMAP.md` for the planned version sequence.
 - made the uncompressed LuCI JavaScript file the source of truth without changing dashboard behavior
 - restricted GitHub Release publication to version tag pushes that match `PKG_VERSION`
 - added lightweight CI validation before the OpenWrt SDK build
+- documented the safe version preparation, tagging, publication, and verification procedure
 
 ## Known critical regressions
 

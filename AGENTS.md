@@ -21,6 +21,8 @@ Read these files first:
 
 Then inspect the files related to the requested change.
 
+For package, version, tag, or release work, also read `RELEASING.md` before making changes.
+
 Do not start by rewriting working code.
 
 ## Current architecture
@@ -89,6 +91,8 @@ For `files/usr/bin/huawei`:
 - Keep JSON output valid when values are missing.
 
 ## Package and build changes
+
+Follow `RELEASING.md` for version preparation, tagging, and GitHub Release publication.
 
 Before considering package-related work complete, verify:
 
