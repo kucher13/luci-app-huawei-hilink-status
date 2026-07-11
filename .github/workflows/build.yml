@@ -31,7 +31,49 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check required files
+        shell: bash
+        run: |
+          required_files=(
+            Makefile
+            build-on-ubuntu.sh
+            files/usr/bin/huawei
+            files/www/luci-static/resources/view/huawei/lte_clean.js
+            files/usr/share/luci/menu.d/luci-app-huawei-lte.json
+            files/usr/share/rpcd/acl.d/luci-app-huawei-lte.json
+          )
+
+          for file in "${required_files[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "::error file=${file}::Required file is missing"
+              exit 1
+            fi
+          done
+
+      - name: Check backend shell syntax
+        run: sh -n files/usr/bin/huawei
+
+      - name: Check build script syntax
+        run: bash -n build-on-ubuntu.sh
+
+      - name: Check frontend JavaScript syntax
+        run: node --check files/www/luci-static/resources/view/huawei/lte_clean.js
+
+      - name: Check JSON syntax
+        run: |
+          python3 -m json.tool files/usr/share/luci/menu.d/luci-app-huawei-lte.json >/dev/null
+          python3 -m json.tool files/usr/share/rpcd/acl.d/luci-app-huawei-lte.json >/dev/null
+
   build:
+    needs: validation
     runs-on: ubuntu-24.04
     timeout-minutes: 60
 

@@ -65,7 +65,7 @@ result/luci-app-huawei-hilink-status-*.apk
 result/SHA256SUMS
 ```
 
-GitHub Actions builds the package on relevant source changes and uploads the APK and checksum as workflow artifacts.
+GitHub Actions first validates required package files, shell syntax, frontend JavaScript syntax, and LuCI JSON syntax. After successful validation, it builds the package on relevant source changes and uploads the APK and checksum as workflow artifacts.
 
 GitHub Release publication is restricted to pushed tags matching `v*`. Before publishing release files, the workflow reads `PKG_VERSION` from `Makefile` and requires the pushed tag to equal `v${PKG_VERSION}`.
 
@@ -134,9 +134,8 @@ The next maintenance phase should prepare the repository for continued developme
 
 Priority order:
 
-1. add lightweight validation for shell, package structure, and frontend source
-2. add a persistent LuCI setting for the Huawei modem address
-3. improve compatibility diagnostics for different HiLink firmware variants
+1. add a persistent LuCI setting for the Huawei modem address
+2. improve compatibility diagnostics for different HiLink firmware variants
 
 See `ROADMAP.md` for the planned version sequence.
 
@@ -151,6 +150,7 @@ See `ROADMAP.md` for the planned version sequence.
 - added project instructions, project status, roadmap, and changelog files for agent-assisted development
 - made the uncompressed LuCI JavaScript file the source of truth without changing dashboard behavior
 - restricted GitHub Release publication to version tag pushes that match `PKG_VERSION`
+- added lightweight CI validation before the OpenWrt SDK build
 
 ## Known critical regressions
 

@@ -10,11 +10,6 @@ Goal: make continued development safer without changing stable dashboard behavio
 
 Planned:
 
-- add lightweight CI validation for:
-  - backend shell syntax
-  - build script syntax
-  - frontend JavaScript syntax
-  - required package files
 - document the release procedure
 - keep current v1.0.0 user-facing behavior unchanged unless a confirmed bug must be fixed
 
@@ -25,10 +20,12 @@ Completed in the current development branch:
 - removed the obsolete compressed LuCI JavaScript file
 - generalized GitHub Actions release handling so ordinary main-branch pushes never publish releases
 - added a tag and `PKG_VERSION` consistency check before GitHub Release publication
+- added lightweight CI validation for required files, shell scripts, frontend JavaScript, and LuCI JSON files
 
 Release criteria:
 
 - existing package still builds successfully
+- lightweight validation passes before the OpenWrt SDK build
 - no dashboard feature is intentionally removed
 - release automation publishes only from matching version tags
 - repository source is easier to review and modify
