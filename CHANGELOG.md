@@ -2,7 +2,7 @@
 
 All notable user-visible changes to this project are recorded here.
 
-## Unreleased
+## v1.0.1 — Unreleased
 
 ### Maintenance
 

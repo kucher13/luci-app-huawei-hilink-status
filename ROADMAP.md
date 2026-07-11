@@ -8,9 +8,7 @@ The order may change when real modem compatibility reports or regressions requir
 
 Goal: make continued development safer without changing stable dashboard behavior.
 
-Planned:
-
-- keep current v1.0.0 user-facing behavior unchanged unless a confirmed bug must be fixed
+Status: technical maintenance work is complete. Version v1.0.1 is in release preparation and validation; it has not been tagged or published.
 
 Completed in the current development branch:
 
@@ -33,6 +31,8 @@ Release criteria:
 ## v1.1.0 — Configurable Huawei modem address
 
 Goal: remove the fixed `192.168.8.1` assumption from normal LuCI usage.
+
+Status: not started.
 
 Planned:
 

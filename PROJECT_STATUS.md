@@ -5,10 +5,10 @@ Last updated: 2026-07-11
 ## Current release
 
 - Stable release: `v1.0.0`
-- Package version: `1.0.0-r1`
+- Prepared package version: `1.0.1-r1`
 - Package name: `luci-app-huawei-hilink-status`
 - License: MIT
-- Release status: successful
+- Release status: `v1.0.1` is prepared for release validation but is not tagged or published
 
 The published v1.0.0 package checksum recorded by the repository is:
 
@@ -18,7 +18,7 @@ c5e0de54bb0ecb78e341cae76eea250c1f5530b5082277b260a86017fa1d8a0e
 
 ## Current state
 
-The project is functional and has a public v1.0.0 release.
+The project is functional and has a public v1.0.0 release. Package version `1.0.1-r1` is prepared for release validation; the stable public release remains v1.0.0 until the version tag workflow succeeds.
 
 The LuCI dashboard currently provides:
 
@@ -71,7 +71,7 @@ For commit `08e11b6b113c0b0b4139472a5e22083f0176da55`, GitHub Actions workflow r
 
 GitHub Release publication is restricted to pushed tags matching `v*`. Before publishing release files, the workflow reads `PKG_VERSION` from `Makefile` and requires the pushed tag to equal `v${PKG_VERSION}`.
 
-The safe release procedure is documented in `RELEASING.md`. Version `v1.0.1` has not been tagged or published.
+The safe release procedure is documented in `RELEASING.md`. Version `v1.0.1` is prepared for release validation but has not been tagged or published.
 
 The package now installs the LuCI JavaScript view from the uncompressed source file in the repository.
 
@@ -134,9 +134,9 @@ The current parser handles the known tested flow, but broader compatibility stil
 
 ## Current focus
 
-The next maintenance phase should prepare the repository for continued development after v1.0.0 without changing stable user behavior unnecessarily.
+The current focus is completing release preparation and validation for v1.0.1. Work on v1.1.0 has not started.
 
-Priority order:
+After a successful v1.0.1 release, the planned priority order is:
 
 1. add a persistent LuCI setting for the Huawei modem address
 2. improve compatibility diagnostics for different HiLink firmware variants
