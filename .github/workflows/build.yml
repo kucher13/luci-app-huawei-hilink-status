@@ -6,11 +6,19 @@ on:
     tags: ['v*']
     paths-ignore:
       - 'README.md'
+      - 'AGENTS.md'
+      - 'PROJECT_STATUS.md'
+      - 'ROADMAP.md'
+      - 'CHANGELOG.md'
       - 'RELEASE_STATUS.md'
       - 'docs/**'
   pull_request:
     paths-ignore:
       - 'README.md'
+      - 'AGENTS.md'
+      - 'PROJECT_STATUS.md'
+      - 'ROADMAP.md'
+      - 'CHANGELOG.md'
       - 'RELEASE_STATUS.md'
       - 'docs/**'
   workflow_dispatch:
